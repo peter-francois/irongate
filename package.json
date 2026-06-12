@@ -1,12 +1,16 @@
 {
   "name": "irongate",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "lint": "bunx biome lint ./src",
+    "format": "bunx biome format --write ./src",
+    "check": "bunx biome check --write ./src"
   },
   "dependencies": {
     "hono": "^4.12.25"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
     "@types/bun": "latest"
   }
 }

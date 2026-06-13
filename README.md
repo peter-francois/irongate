@@ -52,10 +52,10 @@ cd irongate
 bun install
 ```
 
-Create a `.env` file:
+Copy `.env.example` to `.env` and fill in the values:
 
-```
-API_TOKEN=your-token
+```bash
+cp .env.example .env
 ```
 
 ## Scripts

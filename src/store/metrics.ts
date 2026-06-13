@@ -10,6 +10,7 @@ export function addMetric(machineId: string, metric: Metric): void {
   } else {
     store.set(machineId, [metric]);
   }
+  notify(metric);
 }
 
 export function getMetricsByMachine(machineId: string): Metric[] | undefined {
@@ -21,4 +22,17 @@ export function getMetricsByMachine(machineId: string): Metric[] | undefined {
 
 export function getAllMetrics(): Metric[] {
   return Array.from(store.values()).flat();
+}
+
+type Subscriber = (metric: Metric) => void;
+
+const subscribers = new Set<Subscriber>();
+
+export function subscribe(fn: Subscriber): () => void {
+  subscribers.add(fn);
+  return () => subscribers.delete(fn);
+}
+
+export function notify(metric: Metric): void {
+  subscribers.forEach((fn) => fn(metric));
 }

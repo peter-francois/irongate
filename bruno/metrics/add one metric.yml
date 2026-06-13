@@ -1,0 +1,26 @@
+info:
+  name: add one metric
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:3000/metrics
+  headers:
+    - name: Authorization
+      value: Bearer {{process.env.API_TOKEN}}
+  body:
+    type: json
+    data: |-
+      {
+        "machineId": "machine-1",
+        "kind": "temperature",
+        "value": 72.4,
+        "timestamp": "2024-01-01T00:00:00.000Z"
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

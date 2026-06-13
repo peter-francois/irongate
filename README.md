@@ -19,6 +19,8 @@ Lightweight industrial metrics broker built with Bun and Hono. Explores real-tim
 
 **SSE over WebSocket** => unidirectional server push is sufficient for streaming metrics to consumers. A pub/sub system using a `Set` of subscribers notifies connected clients on every new metric.
 
+**Bruno** => Bruno collections are used to share API test scenarios across the team, enabling a consistent and reproducible testing workflow without additional setup.
+
 
 ## API
 
@@ -58,6 +60,9 @@ Copy `.env.example` to `.env` and fill in the values:
 cp .env.example .env
 ```
 
+Bruno collections also rely on the same variables.
+You must manually mirror `.env` values into the Bruno environment (see `bruno/` folder).
+
 ## Scripts
 
 ```bash
@@ -65,6 +70,30 @@ bun dev       # start dev server with hot reload
 bun test      # run tests
 bun check     # lint + format (Biome)
 ```
+
+## Testing
+
+API behaviour was manually verified using Bruno.
+
+### Scenarios covered
+
+- Authentication required on all routes
+- Metric ingestion with valid payloads
+- Validation errors on malformed payloads
+- Retrieval of all stored metrics
+- Retrieval of metrics for a specific machine
+- SSE stream receiving newly ingested metrics in real time
+
+### Example workflow
+
+1. Open an SSE connection to `/stream`
+2. Send a metric to `POST /metrics`
+3. Verify:
+   - `201 Created` response
+   - metric stored in memory
+   - metric immediately received by connected SSE clients
+
+Bruno collections used during development are available in the `bruno/` directory.
 
 ## What I learned
 
@@ -86,5 +115,4 @@ Secrets are managed via a `dev` environment in GitHub repository settings.
 
 ## Next steps
 
-- [ ] Investigate SSE connection closing after ~10s (likely a Bun `idleTimeout` issue)
 - [ ] Build a simulation script => multiple machines sending concurrent metrics to observe the system under realistic load

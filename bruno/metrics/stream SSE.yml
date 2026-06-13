@@ -1,0 +1,23 @@
+info:
+  name: stream SSE
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:3000/stream
+  headers:
+    - name: Authorization
+      value: Bearer {{process.env.API_TOKEN}}
+  body:
+    type: json
+    data: ""
+  auth:
+    type: bearer
+    token: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

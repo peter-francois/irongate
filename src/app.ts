@@ -1,9 +1,8 @@
 import { Hono } from 'hono'
+import metrics from './routes/metrics'
 
 const app = new Hono()
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+app.route('/metrics', metrics)
 
 export default app

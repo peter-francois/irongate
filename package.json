@@ -7,7 +7,9 @@
     "check": "bunx biome check --write ./src"
   },
   "dependencies": {
-    "hono": "^4.12.25"
+    "@hono/zod-validator": "^0.8.0",
+    "hono": "^4.12.25",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",

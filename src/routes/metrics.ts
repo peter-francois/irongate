@@ -1,12 +1,17 @@
 import { Hono } from "hono";
-import { addMetric, getAllMetrics, getMetricsByMachine } from "../store/metrics";
-import type { Metric } from "../types/metric";
+import {
+  addMetric,
+  getAllMetrics,
+  getMetricsByMachine,
+} from "../store/metrics";
+import { MetricSchema } from "../types/metric";
+import { zValidator } from "@hono/zod-validator";
 
 const metrics = new Hono();
 
-metrics.post("/", async (c) => {
-  const body = await c.req.json<Metric>();
-  addMetric(body.machineId, body);
+metrics.post("/", zValidator("json", MetricSchema), async (c) => {
+  const validated = c.req.valid("json");
+  addMetric(validated.machineId, validated);
   return c.json({ success: true }, 201);
 });
 

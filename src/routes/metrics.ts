@@ -1,11 +1,7 @@
-import { Hono } from "hono";
-import {
-  addMetric,
-  getAllMetrics,
-  getMetricsByMachine,
-} from "../store/metrics";
-import { MetricSchema } from "../types/metric";
 import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { addMetric, getAllMetrics, getMetricsByMachine } from "../store/metrics";
+import { MetricSchema } from "../types/metric";
 
 const metrics = new Hono();
 

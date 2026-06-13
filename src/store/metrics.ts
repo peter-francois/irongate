@@ -34,5 +34,7 @@ export function subscribe(fn: Subscriber): () => void {
 }
 
 export function notify(metric: Metric): void {
-  subscribers.forEach((fn) => fn(metric));
+  for (const fn of subscribers) {
+    fn(metric);
+  }
 }

@@ -36,6 +36,19 @@ describe("POST /metrics", () => {
 
     expect(res.status).toBe(401);
   });
+
+  it("should return 400 if body is invalid", async () => {
+    const res = await app.request("/metrics", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${TOKEN}`,
+      },
+      body: JSON.stringify({}),
+    });
+
+    expect(res.status).toBe(400);
+  });
 });
 
 describe("GET /metrics", () => {

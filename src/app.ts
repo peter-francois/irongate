@@ -6,8 +6,8 @@ import stream from "./routes/stream";
 
 const app = new Hono();
 app.use(logger);
-app.use(auth);
 app.get("/health", (c) => c.json({ status: "ok" }));
+app.use(auth);
 app.route("/metrics", metrics);
 app.route("/stream", stream);
 

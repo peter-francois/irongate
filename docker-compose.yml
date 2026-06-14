@@ -8,7 +8,7 @@ services:
     ports: 
       - "${PORT}:3000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD-SHELL", "bun --eval \"fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1))\""]
       interval: 5s
       timeout: 3s
       retries: 3
@@ -17,7 +17,19 @@ services:
     env_file:
       - ./.env
   
-
+  k6:
+    image: grafana/k6
+    container_name: k6
+    networks:
+      - app-network
+    volumes:
+      - ./k6:/scripts
+    command: run /scripts/load-test.js
+    depends_on:
+      irongate:
+        condition: service_healthy
+    environment:
+      - API_TOKEN=${API_TOKEN}
 
 networks:
   app-network:

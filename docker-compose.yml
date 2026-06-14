@@ -1,0 +1,24 @@
+services:
+  irongate:
+    container_name: irongate
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    ports: 
+      - "${PORT}:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - app-network
+    env_file:
+      - ./.env
+  
+
+
+networks:
+  app-network:
+    driver: bridge

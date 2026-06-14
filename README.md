@@ -4,23 +4,24 @@ Lightweight industrial metrics broker built with Bun and Hono. Explores real-tim
 
 ## Stack
 
-- Runtime => Bun
-- Framework => Hono
-- Language => TypeScript
-- Linting & formatting => Biome
+- Runtime — Bun
+- Framework — Hono
+- Language — TypeScript
+- Linting & formatting — Biome
 
 ## Technical decisions
 
-**Biome** replaces the ESLint + Prettier combo => single tool, zero config conflicts, faster execution.
+**Biome** replaces the ESLint + Prettier combo — single tool, zero config conflicts, faster execution.
 
-**In-memory store** => no database, metrics are stored in a `Map<string, Metric[]>` keyed by machine ID. O(1) access per machine, intentionally simple for exploration purposes.
+**In-memory store** — no database, metrics are stored in a `Map<string, Metric[]>` keyed by machine ID. O(1) access per machine, intentionally simple for exploration purposes.
 
-**Zod validation** => request bodies are validated at the route level via `@hono/zod-validator`. The `Metric` type is derived directly from the Zod schema => single source of truth.
+**Zod validation** — request bodies are validated at the route level via `@hono/zod-validator`. The `Metric` type is derived directly from the Zod schema — single source of truth.
 
-**SSE over WebSocket** => unidirectional server push is sufficient for streaming metrics to consumers. A pub/sub system using a `Set` of subscribers notifies connected clients on every new metric.
+**SSE over WebSocket** — unidirectional server push is sufficient for streaming metrics to consumers. A pub/sub system using a `Set` of subscribers notifies connected clients on every new metric.
 
-**Bruno** => Bruno collections are used to share API test scenarios across the team, enabling a consistent and reproducible testing workflow without additional setup.
+**Edge-ready architecture** — Hono is built on Web Standards (`Request`/`Response`). The app instance exposes a `fetch` handler compatible with Bun, Cloudflare Workers, and other runtimes without modification.
 
+**Bruno** — API collections are committed to the repo, enabling a consistent and reproducible testing workflow without additional setup.
 
 ## API
 
@@ -30,8 +31,9 @@ Lightweight industrial metrics broker built with Bun and Hono. Explores real-tim
 | GET | `/metrics` | Get all metrics |
 | GET | `/metrics/:machineId` | Get metrics for a specific machine |
 | GET | `/stream` | SSE stream of incoming metrics |
+| GET | `/health` | Health check |
 
-All routes require an `Authorization: Bearer <token>` header.
+All routes except `/health` require an `Authorization: Bearer <token>` header.
 
 ### Metric payload
 
@@ -60,8 +62,7 @@ Copy `.env.example` to `.env` and fill in the values:
 cp .env.example .env
 ```
 
-Bruno collections also rely on the same variables.
-You must manually mirror `.env` values into the Bruno environment (see `bruno/` folder).
+Bruno collections also rely on the same variables. Mirror `.env` values into the Bruno environment (see `bruno/` folder).
 
 ## Scripts
 
@@ -71,48 +72,63 @@ bun test      # run tests
 bun check     # lint + format (Biome)
 ```
 
+## Docker
+
+```bash
+docker compose up --build
+```
+
+Starts the app and runs the K6 load test automatically once the service is healthy.
+
+## Load testing
+
+K6 runs automatically via Docker Compose. 10 virtual users simulate 5 machines sending concurrent metrics over 30 seconds.
+
+### Results
+
+```
+checks_succeeded: 100.00% — 600 out of 600
+http_req_duration: avg=1.37ms  p(95)=2.27ms
+http_req_failed:   0.00%
+http_reqs:         600 — ~20 req/s
+```
+
+Response times stay under 2.3ms at p(95) under concurrent load — a direct benefit of Bun's performance over Node.js.
+
 ## Testing
 
-API behaviour was manually verified using Bruno.
+Unit and integration tests use `bun test` with no extra dependencies. Routes are tested via `app.request()` without starting a real server.
 
 ### Scenarios covered
 
-- Authentication required on all routes
+- Authentication required on protected routes
 - Metric ingestion with valid payloads
 - Validation errors on malformed payloads
 - Retrieval of all stored metrics
 - Retrieval of metrics for a specific machine
-- SSE stream receiving newly ingested metrics in real time
 
-### Example workflow
-
-1. Open an SSE connection to `/stream`
-2. Send a metric to `POST /metrics`
-3. Verify:
-   - `201 Created` response
-   - metric stored in memory
-   - metric immediately received by connected SSE clients
-
-Bruno collections used during development are available in the `bruno/` directory.
+Manual API testing is done with Bruno. Collections are available in the `bruno/` directory.
 
 ## What I learned
 
-- **Hono routing** => middleware pipeline, context object (`c`), typed request/response
-- **Bun as a runtime** => `Bun.serve()`, `Bun.env`, native Web Standards support
-- **SSE in practice** => persistent connections, subscriber pattern, cleanup on disconnect
-- **Zod + Hono** => schema-first validation with derived TypeScript types
-- **Biome** => unified linter and formatter, replaces the ESLint + Prettier setup
-- **Testing with `bun test`** => no extra dependencies, `app.request()` to test routes without starting a real server
+- **Hono routing** — middleware pipeline, context object (`c`), typed request/response
+- **Bun as a runtime** — `Bun.serve()`, `Bun.env`, native Web Standards support
+- **SSE in practice** — persistent connections, subscriber pattern, cleanup on disconnect
+- **Zod + Hono** — schema-first validation with derived TypeScript types
+- **Biome** — unified linter and formatter, replaces the ESLint + Prettier setup
+- **Testing with `bun test`** — no extra dependencies, `app.request()` to test routes without starting a real server
+- **Docker + K6** — containerised load testing with health-gated service startup
 
 ## CI
 
 GitHub Actions pipeline runs on every push to `main`:
 
-- `bun check` => lint and format validation
-- `bun test` => full test suite
+- `bun check` — lint and format validation
+- `bun test` — full test suite
 
 Secrets are managed via a `dev` environment in GitHub repository settings.
 
 ## Next steps
 
-- [ ] Build a simulation script => multiple machines sending concurrent metrics to observe the system under realistic load
+- [ ] Add Grafana + InfluxDB for real-time K6 metrics visualisation
+- [ ] Persist metrics to a time-series database (TimescaleDB or InfluxDB) to survive container restarts
